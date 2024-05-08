@@ -407,6 +407,51 @@ ROOT::RDF::RNode CheckForDiLeptonPairs(
     return df1;
 }
 
+/// A function that checks if there is at leat two dilepton pairs
+
+ROOT::RDF::RNode CheckForTwoDiLeptonPairs(
+    ROOT::RDF::RNode df, const std::string &output_flag,
+    const std::string &leptons_pt, const std::string &leptons_eta,
+    const std::string &leptons_phi, const std::string &leptons_mass,
+    const std::string &leptons_charge, const std::string &leptons_mask,
+    const float dR_cut) {
+
+    auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
+                                       const ROOT::RVec<float> &eta_values,
+                                       const ROOT::RVec<float> &phi_values,
+                                       const ROOT::RVec<float> &mass_values,
+                                       const ROOT::RVec<int> &charge_values,
+                                       const ROOT::RVec<int> &mask) {
+        int pair_count = 0;
+        const auto valid_lepton_indices = ROOT::VecOps::Nonzero(mask);
+        for (auto it1 = valid_lepton_indices.begin();
+             it1 != valid_lepton_indices.end(); it1++) {
+            for (auto it2 = it1 + 1; it2 != valid_lepton_indices.end(); it2++) {
+                if (charge_values.at(*it1) != charge_values.at(*it2)) {
+                    auto p4_1 = ROOT::Math::PtEtaPhiMVector(
+                        pt_values.at(*it1), eta_values.at(*it1),
+                        phi_values.at(*it1), mass_values.at(*it1));
+                    auto p4_2 = ROOT::Math::PtEtaPhiMVector(
+                        pt_values.at(*it2), eta_values.at(*it2),
+                        phi_values.at(*it2), mass_values.at(*it2));
+                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= dR_cut) {
+                        pair_count++;
+                        if (pair_count >= 2) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    auto df1 = df.Define(output_flag, pair_finder_lambda,
+                         {leptons_pt, leptons_eta, leptons_phi, leptons_mass,
+                          leptons_charge, leptons_mask});
+    return df1;
+}
+
 /// Muon specific functions
 namespace muon {
 /// Function to cut on muons based on the muon ID
@@ -460,6 +505,16 @@ ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
                          {isolationName});
     return df1;
 }
+
+ROOT::RDF::RNode TrgCut(ROOT::RDF::RNode df,
+								  const std::string &maskname,
+                                  const std::string &isolationName,
+                                  const float &Threshold) {
+    auto df1 = df.Define(maskname, basefunctions::FilterMin(Threshold),
+                         {isolationName});
+    return df1;
+}
+
 /// Function to cut on muons based on the muon signature: isTracker or isGlobal
 ///
 /// \param[in] df the input dataframe

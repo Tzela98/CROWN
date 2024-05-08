@@ -51,6 +51,11 @@ ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df, const int &njets,
                               const std::string &str_good_jets_mask,
                               const std::string &str_good_bjets_mask);
 
+ROOT::RDF::RNode JetSelectionVbfScope(ROOT::RDF::RNode df, const int &njets,
+                              const int &nbjets,
+                              const std::string &str_good_jets_mask,
+                              const std::string &str_good_bjets_mask);
+
 ROOT::RDF::RNode
 TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         const std::string &str_n_nonbjets, const std::string &str_nonbjet_p4_1,

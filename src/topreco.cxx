@@ -695,6 +695,30 @@ ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df, const int &njets,
     return df2;
 }
 
+ROOT::RDF::RNode JetSelectionVbfScope(ROOT::RDF::RNode df,
+                  const int &njets,
+                  const int &nbjets,
+                              const std::string &jet_collection,
+                              const std::string &bjet_collection) {
+
+    auto df2 = df.Filter(
+        [njets, nbjets](const ROOT::RVec<int> &jet_collection,
+                        const ROOT::RVec<int> &bjet_collection) {
+            int nj = jet_collection.size();
+            int nbj = bjet_collection.size();
+                         Logger::get("JetSelectionVbfScope")->debug("Filtering jets");
+                         Logger::get("JetSelectionVbfScope")
+                             ->debug("NJets {}", nj);
+                         Logger::get("JetSelectionVbfScope")
+                             ->debug("NbJets {}", nbj);
+            return (nj >= njets) && (nbj == nbjets);
+        },
+        {jet_collection, bjet_collection},
+        "jet selection and b jet selection");
+
+    return df2;
+}
+
 /**
  * Function to reconstruct a leptonic top quark from a b jet and a W boson based
  * on the number of jets and b jets in the event.

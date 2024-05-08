@@ -20,11 +20,23 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
                     const std::string &eta, const std::string &year_id,
                     const std::string &variation, const std::string &id_output,
                     const std::string &sf_file, const std::string &idAlgorithm);
+ROOT::RDF::RNode trg(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &trg_output,
+                    const std::string &sf_file, const std::string &idAlgorithm);
+ROOT::RDF::RNode eff(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &eff_output,
+                    const std::string &eff_file, const std::string &idAlgorithm);
 ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
                      const std::string &eta, const std::string &year_id,
                      const std::string &variation,
                      const std::string &iso_output, const std::string &sf_file,
                      const std::string &idAlgorithm);
+ROOT::RDF::RNode trg_sf(ROOT::RDF::RNode df,
+                        const std::string &effdt1, const std::string &effdt2,
+                        const std::string &effmc1, const std::string &effmc2,
+                        const std::string &sf_output);
 } // namespace muon
 namespace tau {
 

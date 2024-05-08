@@ -121,6 +121,79 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+
+ROOT::RDF::RNode trg(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &trg_output,
+                    const std::string &sf_file,
+                    const std::string &idAlgorithm) {
+
+    Logger::get("muonTrgSF")->debug("Setting up functions for muon trg sf");
+    Logger::get("muonTrgSF")->debug("trg - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        trg_output,
+        [evaluator, variation](const float &eta, const float &pt) {
+            Logger::get("muonTrgSF")->debug("Trg - pt {}, eta {}, variation {}", pt, eta, variation);
+            double sf = 1.;
+            // preventing muons with default values due to tau energy correction
+            // shifts below good tau pt selection
+            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
+                sf = evaluator->evaluate(
+                    {std::abs(eta), pt, variation});
+            }
+            return sf;
+        },
+        {eta, pt});
+    return df1;
+}
+
+ROOT::RDF::RNode eff(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &eff_output,
+                    const std::string &eff_file,
+                    const std::string &idAlgorithm) {
+
+    Logger::get("muonTrgEff")->debug("Setting up functions for muon trg eff");
+    Logger::get("muonTrgEff")->debug("trg eff - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(eff_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        eff_output,
+        [evaluator, variation](const float &eta, const float &pt) {
+            Logger::get("muonTrgEff")->debug("Trg Eff - pt {}, eta {}, variation {}", pt, eta, variation);
+            double eff = 1.;
+            // preventing muons with default values due to tau energy correction
+            // shifts below good tau pt selection
+            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
+                eff = evaluator->evaluate(
+                    {std::abs(eta), pt, variation});
+            }
+            return eff;
+        },
+        {eta, pt});
+    return df1;
+}
+
+ROOT::RDF::RNode trg_sf(ROOT::RDF::RNode df,
+                        const std::string &effdt1, const std::string &effdt2,
+                        const std::string &effmc1, const std::string &effmc2,
+                        const std::string &sf_output) {
+    
+    Logger::get("muonTrgEff")->debug("Setting up function to calculate sf from trg eff");
+
+    auto df1 = df.Define(sf_output, [&](const double &effdt1, const double &effdt2,
+                                        const double &effmc1, const double &effmc2) {
+	
+        double sf = (1 - (1 - effdt1) * (1 - effdt2)) / (1 - (1 - effmc1) * (1 - effmc2));
+        return sf;
+    }, {effdt1, effdt2, effmc1, effmc2});
+
+    return df1;
+}
+
+
 /**
  * @brief Function used to evaluate iso scale factors from muons with
  * correctionlib. Configurations:
